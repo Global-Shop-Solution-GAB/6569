@@ -1,0 +1,248 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.Form..Create(BaseForm)
+Gui.Form..Caption("Ceridian Export")
+Gui.Form..Size(404,82)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..AlwaysOnTop(False)
+Gui.Form..FontName("Tahoma")
+Gui.Form..FontSize(8.25)
+Gui.Form..ControlBox(True)
+Gui.Form..MaxButton(True)
+Gui.Form..MinButton(True)
+Gui.Form..MousePointer(0)
+Gui.Form..Moveable(True)
+Gui.Form..Sizeable(True)
+Gui.Form..ShowInTaskBar(True)
+Gui.Form..TitleBar(True)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form.lbl1.Create(Label,"Save File As:",True,62,13,0,6,6,True,0,"Tahoma",8.25,,0,0)
+Gui.Form.lbl1.BorderStyle(0)
+Gui.Form.txtFilePath.Create(TextBox,"",True,281,20,0,6,23,True,0,"Tahoma",8.25,,1)
+Gui.Form.cmdFileBrw.Create(Button)
+Gui.Form.cmdFileBrw.Enabled(True)
+Gui.Form.cmdFileBrw.Visible(True)
+Gui.Form.cmdFileBrw.Zorder(0)
+Gui.Form.cmdFileBrw.Size(25,23)
+Gui.Form.cmdFileBrw.Position(291,22)
+Gui.Form.cmdFileBrw.Caption("^")
+Gui.Form.cmdFileBrw.FontName("Tahoma")
+Gui.Form.cmdFileBrw.FontSize(8.25)
+Gui.Form.cmdFileBrw.Event(Click,cmdFileBrw_Click)
+Gui.Form.cmdExport.Create(Button)
+Gui.Form.cmdExport.Enabled(True)
+Gui.Form.cmdExport.Visible(True)
+Gui.Form.cmdExport.Zorder(0)
+Gui.Form.cmdExport.Size(75,23)
+Gui.Form.cmdExport.Position(321,22)
+Gui.Form.cmdExport.Caption("Export")
+Gui.Form.cmdExport.FontName("Tahoma")
+Gui.Form.cmdExport.FontSize(8.25)
+Gui.Form.cmdExport.Event(Click,cmdExport_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+v.Global.sRunCYMD.Declare
+v.Global.sRunTime.Declare
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+v.Local.sRet.Declare
+'Get Passed Variables:
+F.Intrinsic.String.Left(V.Passed.888888,8,V.Global.sRunCYMD)
+F.Intrinsic.String.Mid(V.Passed.888888,9,6,V.Global.sRunTime)
+
+'Create Export Layout
+f.Data.Datatable.Create("exportDT", True)
+f.Data.Datatable.AddColumn("exportDT", "Name", "String", "G532A")
+f.Data.Datatable.AddColumn("exportDT", "Employee", "String")
+f.Data.Datatable.AddColumn("exportDT", "2Reg", "String")
+f.Data.Datatable.AddColumn("exportDT", "OT", "String")
+f.Data.Datatable.AddColumn("exportDT", "DT", "String")
+f.Data.Datatable.AddColumn("exportDT", "Reg10", "String")
+f.Data.Datatable.AddColumn("exportDT", "OT10", "String")
+f.Data.Datatable.AddColumn("exportDT", "DT10", "String")
+f.Data.Datatable.AddColumn("exportDT", "PTO", "String")
+f.Data.Datatable.AddColumn("exportDT", "Brvmt", "String")
+f.Data.Datatable.AddColumn("exportDT", "Holi", "String")
+f.Data.Datatable.AddColumn("exportDT", "Jury", "String")
+f.Data.Datatable.AddColumn("exportDT", "CompT", "String")
+f.Data.Datatable.AddColumn("exportDT", "Reg20", "String")
+f.Data.Datatable.AddColumn("exportDT", "OT20", "String")
+f.Data.Datatable.AddColumn("exportDT", "DT20", "String")
+f.Data.Datatable.AddColumn("exportDT", "Retro", "String")
+f.Data.Datatable.AddColumn("exportDT", "Comm", "String")
+
+gui.Form..Show
+Program.Sub.Main.End
+
+Program.Sub.ErrorMsg.Start
+v.Local.sError.Declare
+
+'Closes ODBC connection, default to connection : "con"
+f.Intrinsic.Control.If(v.ODBC!con.State, =, 1)
+	f.ODBC.Connection!con.Close
+f.Intrinsic.Control.EndIf
+
+'Generic Error message.
+f.Intrinsic.String.Build("Project GCG_6561_Ceridian_Export.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.Form_UnLoad.Start
+f.Intrinsic.Control.Try
+	'End Program.
+	f.Intrinsic.Control.End
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.cmdFileBrw_Click.Start
+v.Local.sRet.Declare
+v.Local.sFile.Declare
+f.Intrinsic.Control.Try
+'Try something
+	'Create File Name
+	f.Intrinsic.String.Build("{1}\EntFiles\Payroll\G532_{0}.csv", v.Ambient.Date.PervasiveDate, v.Caller.GlobalDir, v.Local.sFile)
+	'File Browser
+	f.Intrinsic.UI.ShowSaveFileDialog(V.Local.sFile,"Comma Separated File|.csv",,V.Local.sRet)
+	f.Intrinsic.Control.If(v.Local.sRet, <>, "***CANCEL***")
+		gui.Form.txtFilePath.Text(v.Local.sRet)
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdFileBrw_Click.End
+
+Program.Sub.cmdExport_Click.Start
+v.Local.sFile.Declare
+v.Local.sSQL.Declare
+v.Local.iCnt.Declare
+v.Local.iRet.Declare
+v.Local.sEmp.Declare
+v.Local.sName.Declare
+v.Local.fHours.Declare
+v.Local.dBegDate.Declare
+v.Local.dEndDate.Declare
+v.Local.sFilter.Declare
+
+v.Local.fReg.Declare
+v.Local.fReg10.Declare
+v.Local.fReg20.Declare
+v.Local.fOT.Declare
+v.Local.fOT10.Declare
+v.Local.fOT20.Declare
+v.Local.fDT.Declare
+v.Local.fDT10.Declare
+v.Local.fDT20.Declare
+v.Local.fPTO.Declare
+v.Local.fJD.Declare
+v.Local.fBerv.Declare
+v.Local.fCT.Declare
+f.Intrinsic.Control.Try
+'Try something
+	'Check if file is selected.
+	v.Local.sFile.Set(v.Screen.Form!txtFilePath.Text)
+	f.Intrinsic.Control.If(v.Local.sFile.Trim, =, "")
+		f.Intrinsic.UI.Msgbox("Please select a file location")
+		f.Intrinsic.Control.ExitSub
+	f.Intrinsic.Control.EndIf
+	'Get Export Data
+	f.ODBC.Connection!con.OpenCompanyConnection
+		'load all records from PYRL_LABOR_XFER
+		'f.Intrinsic.String.Build("select a.Employee as EmployeeNumber, a.Name, rtrim(a.Dept) as LaborField1, a.Type as CategoryNumber, a.EC, a.Hours, b.SOC_SEC_ENC from PYRL_LABOR_XFER a left join V_EMPLOYEE_MSTR b on a.employee = b.employee where a.RUN_CYMD = '{0}' and a.RUN_TIME = '{1}'", v.Global.sRunCYMD, v.Global.sRunTime, v.Local.sSQL)
+		f.Intrinsic.String.Build("Select Employee, Name, Dept, Type, EC, cast (Hours as DOUBLE) as Hours, Beg_CYMD, End_CYMD from PYRL_LABOR_XFER where RUN_CYMD = '{0}' and RUN_TIME = '{1}'", v.Global.sRunCYMD, v.Global.sRunTime, v.Local.sSQL)
+		
+		f.Data.Datatable.CreateFromSQL("payRollDT", "con", v.Local.sSQL)	
+		f.Data.DataView.Create("payRollDT", "payRollDV", 22)
+		f.Data.DataView.ToDataTableDistinct("payRollDT", "payRollDV", "empDT", "Employee*!*Name*!*Beg_CYMD*!*End_CYMD")
+	
+		'Loop Through to get detail hours for each employee
+		f.Intrinsic.Control.For(v.Local.iCnt, 0, v.DataTable.empDT.RowCount--, 1)
+			v.Local.sEmp.Set(v.DataTable.empDT(v.Local.iCnt).Employee!FieldValTrim)
+			v.Local.sName.Set(v.DataTable.empDT(v.Local.iCnt).Name!FieldValTrim)
+			
+			f.Intrinsic.Date.ConvertDString(v.DataTable.empDT(v.Local.iCnt).Beg_CYMD!FieldValTrim, "YYYYMMDD", v.Local.dBegDate)
+			f.Intrinsic.Date.ConvertDString(v.DataTable.empDT(v.Local.iCnt).End_CYMD!FieldValTrim, "YYYYMMDD", v.Local.dEndDate)
+			'Job Detail for Shift not = 'N' AND WC not in Terf, surf (REG)2
+			f.Intrinsic.String.Build("Select Empl, Rate_Type, Shift_Shift, machine, Sum(hours_worked) as Hours from V_JOB_DETAIL where Empl = '{0}' and Date_Sequence >= '{1}' and Date_Sequence <= '{2}' and LMO = 'L' and Shift_Shift <> 'N' and machine not in ('SURF', 'SURW', 'SURL', 'TERF', 'TERW', 'TERL') group by Empl, Rate_Type, Shift_Shift, machine", v.Local.sEmp, v.Local.dBegDate.PervasiveDate, v.Local.dEndDate.PervasiveDate, v.Local.sSQL)
+			f.Data.Datatable.CreateFromSQL("jobDetailDT", "con", v.Local.sSQL)			
+			'Compute
+			'Rate_Type = R for Regular, O for Overtime, 2 for Doubletime.
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = 'R'", v.Local.fReg)
+			f.Intrinsic.Math.Round(v.Local.fReg, 2, v.Local.fReg)
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = 'O'", v.Local.fOT)
+			f.Intrinsic.Math.Round(v.Local.fOT, 2, v.Local.fOT)
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = '2'", v.Local.fDT)
+			f.Intrinsic.Math.Round(v.Local.fDT, 2, v.Local.fDT)
+			'Close DT
+			f.Data.Datatable.Close("jobDetailDT")
+			'Job Detail for Shift = 'N' XOR WC in Terf, surf (REG 10)
+			f.Intrinsic.String.Build("Select Empl, Rate_Type, Shift_Shift, machine, Sum(hours_worked) as Hours from V_JOB_DETAIL where Empl = '{0}' and Date_Sequence >= '{1}' and Date_Sequence <= '{2}' and LMO = 'L' and ((Shift_Shift = 'N' and machine not in ('SURF', 'SURW', 'SURL', 'TERF', 'TERW', 'TERL')) or (Shift_Shift <> 'N' and machine in ('SURF', 'SURW', 'SURL', 'TERF', 'TERW', 'TERL'))) group by Empl, Rate_Type, Shift_Shift, machine", v.Local.sEmp, v.Local.dBegDate.PervasiveDate, v.Local.dEndDate.PervasiveDate, v.Local.sSQL)
+			f.Data.Datatable.CreateFromSQL("jobDetailDT", "con", v.Local.sSQL)			
+			'Compute
+			'Rate_Type = R for Regular, O for Overtime, 2 for Doubletime.
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = 'R'", v.Local.fReg10)
+			f.Intrinsic.Math.Round(v.Local.fReg10, 2, v.Local.fReg10)
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = 'O'", v.Local.fOT10)
+			f.Intrinsic.Math.Round(v.Local.fOT10, 2, v.Local.fOT10)
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = '2'", v.Local.fDT10)
+			f.Intrinsic.Math.Round(v.Local.fDT10, 2, v.Local.fDT10)
+			'Close DT
+			f.Data.Datatable.Close("jobDetailDT")
+			'Job Detail for Shift = 'N' AND WC in Terf, surf (REG 20)
+			f.Intrinsic.String.Build("Select Empl, Rate_Type, Shift_Shift, machine, Sum(hours_worked) as Hours from V_JOB_DETAIL where Empl = '{0}' and Date_Sequence >= '{1}' and Date_Sequence <= '{2}' and LMO = 'L' and Shift_Shift = 'N' and machine in ('SURF', 'SURW', 'SURL', 'TERF', 'TERW', 'TERL') group by Empl, Rate_Type, Shift_Shift, machine", v.Local.sEmp, v.Local.dBegDate.PervasiveDate, v.Local.dEndDate.PervasiveDate, v.Local.sSQL)
+			f.Data.Datatable.CreateFromSQL("jobDetailDT", "con", v.Local.sSQL)			
+			'Compute
+			'Rate_Type = R for Regular, O for Overtime, 2 for Doubletime.
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = 'R'", v.Local.fReg20)
+			f.Intrinsic.Math.Round(v.Local.fReg20, 2, v.Local.fReg20)
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = 'O'", v.Local.fOT20)
+			f.Intrinsic.Math.Round(v.Local.fOT20, 2, v.Local.fOT20)
+			f.Data.Datatable.Compute("jobDetailDT", "Sum(Hours)", "Rate_Type = '2'", v.Local.fDT20)
+			f.Intrinsic.Math.Round(v.Local.fDT20, 2, v.Local.fDT20)
+			'Close DT
+			f.Data.Datatable.Close("jobDetailDT")
+			'Compute PTO
+			f.Intrinsic.String.Build("Employee = '{0}' and Type = 'EC' and EC = '03'", v.Local.sEmp, v.Local.sFilter)
+			f.Data.Datatable.Compute("payRollDT", "Sum(Hours)", v.Local.sFilter, v.Local.fPTO)
+			f.Intrinsic.Math.Round(v.Local.fPTO, 2, v.Local.fPTO)
+			'Compute Jury Duty
+			f.Intrinsic.String.Build("Employee = '{0}' and Type = 'EC' and EC = '04'", v.Local.sEmp, v.Local.sFilter)
+			f.Data.Datatable.Compute("payRollDT", "Sum(Hours)", v.Local.sFilter, v.Local.fJD)
+			f.Intrinsic.Math.Round(v.Local.fJD, 2, v.Local.fJD)
+			'Compute Bervearment
+			f.Intrinsic.String.Build("Employee = '{0}' and Type = 'EC' and EC = '05'", v.Local.sEmp, v.Local.sFilter)
+			f.Data.Datatable.Compute("payRollDT", "Sum(Hours)", v.Local.sFilter, v.Local.fBerv)
+			f.Intrinsic.Math.Round(v.Local.fBerv, 2, v.Local.fBerv)
+			'Compute Comp Time
+			f.Intrinsic.String.Build("Employee = '{0}' and Type = 'EC' and EC = '06'", v.Local.sEmp, v.Local.sFilter)
+			f.Data.Datatable.Compute("payRollDT", "Sum(Hours)", v.Local.sFilter, v.Local.fCT)
+			f.Intrinsic.Math.Round(v.Local.fCT, 2, v.Local.fCT)
+			'Add Line to Export
+			f.Data.Datatable.AddRow("exportDT", "2Reg", v.Local.fReg, "OT", v.Local.fOT, "DT", v.Local.fDT, "Reg10", v.Local.fReg10, "DT10", v.Local.fDT10, "OT10", v.Local.fOT10, "Reg20", v.Local.fReg20, "OT20", v.Local.fOT20, "DT20", v.Local.fDT20, "PTO", v.Local.fPTO, "Brvmt", v.Local.fBerv, "Jury", v.Local.fJD, "CompT", v.Local.fCT, "Name", v.Local.sName, "Employee", v.Local.sEmp)
+		f.Intrinsic.Control.Next(v.Local.iCnt) 
+	
+	f.ODBC.Connection!con.Close
+
+	'Export to CSV
+	f.Data.Datatable.SaveToCSV("exportDT", v.Local.sFile, True)
+	'Check if need to open
+	f.Intrinsic.UI.Msgbox("Do you want to Open File?", "Open File", 4, v.Local.iRet)
+	f.Intrinsic.Control.If(v.Local.iRet, =, 6)
+		f.Intrinsic.Task.ShellExecSync(v.Caller.Handle, "OPEN", v.Local.sFile, "", "", 5)
+	f.Intrinsic.Control.EndIf
+	'Close
+	f.Intrinsic.Control.End
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdExport_Click.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$aanazco$}$20230404153429012$}$7aQAV3Tor/tR9bkuakHbuzQlHVuXCGOzU0KLGCK/wx65/c3tI6mwf3DrXlFWd8Rmsk5y04eEQf4=
+Program.Sub.Comments.End
